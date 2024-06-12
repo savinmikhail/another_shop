@@ -35,6 +35,12 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
     #[ORM\Column(type: 'string', length: 15)]
     private string $phone;
 
+    #[ORM\OneToOne(mappedBy: 'owner', cascade: ['persist', 'remove'])]
+    private ?Cart $cart = null;
+
+    #[ORM\OneToOne(mappedBy: 'owner', cascade: ['persist', 'remove'])]
+    private ?Order $orders = null;
+
     public function getId(): ?int
     {
         return $this->id;
@@ -120,5 +126,39 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
     {
         // If you store any temporary, sensitive data on the user, clear it here
         // $this->plainPassword = null;
+    }
+
+    public function getCart(): ?Cart
+    {
+        return $this->cart;
+    }
+
+    public function setCart(Cart $cart): static
+    {
+        // set the owning side of the relation if necessary
+        if ($cart->getOwner() !== $this) {
+            $cart->setOwner($this);
+        }
+
+        $this->cart = $cart;
+
+        return $this;
+    }
+
+    public function getOrders(): ?Order
+    {
+        return $this->orders;
+    }
+
+    public function setOrders(Order $orders): static
+    {
+        // set the owning side of the relation if necessary
+        if ($orders->getOwner() !== $this) {
+            $orders->setOwner($this);
+        }
+
+        $this->orders = $orders;
+
+        return $this;
     }
 }
