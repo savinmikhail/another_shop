@@ -31,12 +31,6 @@ final class CartController extends AbstractController
             return new JsonResponse(['error' => 'Product not found'], Response::HTTP_NOT_FOUND);
         }
 
-        $cartItem = new CartItem();
-        $cartItem
-            ->setCost($product->getCost())
-            ->setProduct($product)
-            ->setQuantity(1);
-
         $user = $this->getUser();
         if (!$user) {
             return new JsonResponse(['error' => 'Unauthorized'], Response::HTTP_UNAUTHORIZED);
@@ -50,12 +44,29 @@ final class CartController extends AbstractController
             $em->persist($cart);
         }
 
-        $cart->addCartItem($cartItem);
+        // Check if the product is already in the cart
+        $cartItem = $cart->getCartItem()->filter(function (CartItem $item) use ($product) {
+            return $item->getProduct()->getId() === $product->getId();
+        })->first();
 
-        $em->persist($cartItem);
+        if ($cartItem) {
+            // Increment quantity if the item already exists
+            $cartItem->setQuantity($cartItem->getQuantity() + 1);
+        } else {
+            // Add a new CartItem if it doesn't exist
+            $cartItem = new CartItem();
+            $cartItem
+                ->setCost($product->getCost())
+                ->setProduct($product)
+                ->setQuantity(1);
+            $cart->addCartItem($cartItem);
+            $em->persist($cartItem);
+        }
+
         $em->flush();
-        $cart = $serializer->serialize($cart, 'json', ['groups' => 'cart:read']);
 
-        return new JsonResponse(['cart' => $cart], Response::HTTP_CREATED);
+        $jsonCart = $serializer->serialize($cart, 'json', ['groups' => 'cart:read']);
+
+        return new JsonResponse(json_decode($jsonCart), Response::HTTP_CREATED);
     }
 }

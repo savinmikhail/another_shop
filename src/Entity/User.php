@@ -6,6 +6,7 @@ use App\Repository\UserRepository;
 use Doctrine\ORM\Mapping as ORM;
 use Symfony\Component\Security\Core\User\PasswordAuthenticatedUserInterface;
 use Symfony\Component\Security\Core\User\UserInterface;
+use Symfony\Component\Serializer\Annotation\Groups;
 
 #[ORM\Entity(repositoryClass: UserRepository::class)]
 #[ORM\Table(name: '`user`')]
@@ -15,9 +16,11 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
     #[ORM\Id]
     #[ORM\GeneratedValue]
     #[ORM\Column]
+    #[Groups(['cart:read'])]
     private int $id;
 
     #[ORM\Column(length: 180)]
+    #[Groups(['cart:read'])]
     private string $email;
 
     /**
@@ -33,6 +36,7 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
     private string $password;
 
     #[ORM\Column(type: 'string', length: 15)]
+    #[Groups(['cart:read'])]
     private string $phone;
 
     #[ORM\OneToOne(mappedBy: 'owner', cascade: ['persist', 'remove'])]

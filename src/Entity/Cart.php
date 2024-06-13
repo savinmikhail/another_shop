@@ -26,6 +26,7 @@ class Cart
      * @var Collection<int, CartItem>
      */
     #[ORM\OneToMany(targetEntity: CartItem::class, mappedBy: 'cart', cascade: ['persist', 'remove'], orphanRemoval: true)]
+    #[Groups(['cart:read'])]
     private Collection $CartItem;
 
     public function __construct()
