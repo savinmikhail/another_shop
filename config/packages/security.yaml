@@ -17,8 +17,10 @@ security:
             pattern: ^/(_(profiler|wdt)|css|images|js)/
             security: false
 
-        register:
-            pattern: ^/api/register
+        public:
+            pattern:
+                - ^/api/register
+                - ^/api/products
             stateless: true
             security: false
 
@@ -50,6 +52,7 @@ security:
     # Easy way to control access for large sections of your site
     # Note: Only the *first* access control that matches will be used
     access_control:
+        - { path: ^/api/products, roles: IS_AUTHENTICATED_ANONYMOUSLY }
         - { path: ^/api/register, roles: IS_AUTHENTICATED_ANONYMOUSLY }
         - { path: ^/api/login, roles: IS_AUTHENTICATED_ANONYMOUSLY }
         - { path: ^/api/admin, roles: ROLE_ADMIN }
