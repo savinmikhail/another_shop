@@ -31,11 +31,11 @@ final class UserController extends AbstractController
         $user->setEmail($data['email'])
             ->setPhone($data['phone'])
             ->setPassword(
-            $passwordHasher->hashPassword(
-                $user,
-                $data['password']
-            )
-        );
+                $passwordHasher->hashPassword(
+                    $user,
+                    $data['password']
+                )
+            );
 
         $em->persist($user);
         $em->flush();
