@@ -4,11 +4,10 @@ declare(strict_types=1);
 
 namespace App\Event;
 
-
 use App\Entity\User;
 use Symfony\Contracts\EventDispatcher\Event;
 
-final class UserRegisteredEvent  extends Event
+final class UserRegisteredEvent extends Event
 {
     public const NAME = 'user.registered';
 

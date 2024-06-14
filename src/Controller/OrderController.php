@@ -14,26 +14,26 @@ use Symfony\Component\Routing\Annotation\Route;
 
 final class OrderController extends AbstractController
 {
-    public function __construct()
-    {
-    }
-
     #[Route('/api/order', name: 'create_order', methods: ['POST'])]
-    public function createOrder(Request $request, EntityManagerInterface $em, NotificationService $notificationService): Response
-    {
+    public function createOrder(
+        Request $request,
+        EntityManagerInterface $em,
+        NotificationService $notificationService
+    ): Response {
         $data = json_decode($request->getContent(), true);
 
-        // Validate and process the order...
-
         $order = new Order();
-        // Set order properties...
 
         $em->persist($order);
         $em->flush();
 
-        // Send notification...
         $notificationService->sendEmail($data['userEmail'], 'Order Created', 'Your order has been created.');
 
         return $this->json(['status' => 'Order created']);
+    }
+
+    #[Route('/api/order', name: 'create_order', methods: ['POST'])]
+    public function updateStatus()
+    {
     }
 }
