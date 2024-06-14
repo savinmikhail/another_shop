@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Controller;
 
+use App\Event\UserRegisteredEvent;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use App\Entity\User;
 use Doctrine\ORM\EntityManagerInterface;
@@ -15,7 +16,7 @@ use Symfony\Component\Routing\Annotation\Route;
 
 final class UserController extends AbstractController
 {
-    public function __construct()
+    public function __construct(private EventDispatcherInterface $eventDispatcher)
     {
     }
 
@@ -40,8 +41,8 @@ final class UserController extends AbstractController
         $em->persist($user);
         $em->flush();
 
-        // Send welcome SMS
-        // Your logic to send SMS here...
+        $event = new UserRegisteredEvent($user);
+        $this->eventDispatcher->dispatch($event, UserRegisteredEvent::NAME);
 
         return new JsonResponse(['message' => 'User registered successfully'], Response::HTTP_CREATED);
     }
