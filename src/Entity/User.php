@@ -2,6 +2,7 @@
 
 namespace App\Entity;
 
+use App\Enum\UserRole;
 use App\Repository\UserRepository;
 use Doctrine\ORM\Mapping as ORM;
 use Symfony\Component\Security\Core\User\PasswordAuthenticatedUserInterface;
@@ -44,6 +45,9 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
 
     #[ORM\OneToOne(mappedBy: 'owner', cascade: ['persist', 'remove'])]
     private ?Order $orders = null;
+
+    #[ORM\Column(enumType: UserRole::class)]
+    private ?UserRole $role = null;
 
     public function getId(): ?int
     {
@@ -94,7 +98,9 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
         $roles = $this->roles;
         // guarantee every user at least has ROLE_USER
         $roles[] = 'ROLE_USER';
-
+        if ($this->getRole() === UserRole::ADMIN) {
+            $roles[] = 'ROLE_ADMIN';
+        }
         return array_unique($roles);
     }
 
@@ -162,6 +168,18 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
         }
 
         $this->orders = $orders;
+
+        return $this;
+    }
+
+    public function getRole(): ?UserRole
+    {
+        return $this->role;
+    }
+
+    public function setRole(UserRole $role): static
+    {
+        $this->role = $role;
 
         return $this;
     }
