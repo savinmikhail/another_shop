@@ -24,7 +24,7 @@ final readonly class NotificationService
         $this->mailer->send($email);
     }
 
-    public function sendSMS()
+    public function sendSMS(string $phone, string $message)
     {
         //do nothing
     }
