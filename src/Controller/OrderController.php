@@ -81,9 +81,16 @@ final class OrderController extends AbstractController
         $data = json_decode($request->getContent(), true);
 
         $order = $em->getRepository(Order::class)->find($data['id']);
-        $order->setStatus($data['status']);
+        if (!$order) {
+            return $this->json('no such order', Response::HTTP_UNPROCESSABLE_ENTITY);
+        }
+        $status = OrderStatus::tryFrom($data['status']);
+        if (!$status) {
+            return $this->json('invalid status', Response::HTTP_BAD_REQUEST);
+        }
+        $order->setStatus($status);
         $em->persist($order);
         $em->flush();
-        return $this->json(['order status set to '. $order->getStatus()]);
+        return $this->json(['order status set to '. $order->getStatus()->value]);
     }
 }
