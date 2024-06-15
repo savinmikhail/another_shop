@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Controller;
 
+use App\Entity\Address;
 use App\Entity\Order;
 use App\Entity\OrderItem;
 use App\Entity\User;
@@ -63,6 +64,12 @@ final class OrderController extends AbstractController
         if (! $deliveryType) {
             return $this->json('incorrect delivery type', Response::HTTP_UNPROCESSABLE_ENTITY);
         }
+        $address = $em->getRepository(Address::class)->find($data['addressId']);
+        if (! $address && $deliveryType === DeliveryType::COURIER) {
+            return $this->json('such address does not exist', Response::HTTP_UNPROCESSABLE_ENTITY);
+        }
+        $order->setDeliveryType($deliveryType);
+        $order->setDeliveryAddress($address);
         $em->persist($order);
         $em->flush();
 
