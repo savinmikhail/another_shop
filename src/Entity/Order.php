@@ -34,6 +34,9 @@ class Order
     #[ORM\Column(enumType: DeliveryType::class)]
     private ?DeliveryType $deliveryType = null;
 
+    #[ORM\ManyToOne]
+    private ?Address $deliveryAddress = null;
+
     public function __construct()
     {
         $this->orderItems = new ArrayCollection();
@@ -106,6 +109,18 @@ class Order
     public function setDeliveryType(DeliveryType $deliveryType): static
     {
         $this->deliveryType = $deliveryType;
+
+        return $this;
+    }
+
+    public function getDeliveryAddress(): ?Address
+    {
+        return $this->deliveryAddress;
+    }
+
+    public function setDeliveryAddress(?Address $deliveryAddress): static
+    {
+        $this->deliveryAddress = $deliveryAddress;
 
         return $this;
     }
