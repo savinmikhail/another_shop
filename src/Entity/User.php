@@ -8,6 +8,7 @@ use Doctrine\ORM\Mapping as ORM;
 use Symfony\Component\Security\Core\User\PasswordAuthenticatedUserInterface;
 use Symfony\Component\Security\Core\User\UserInterface;
 use Symfony\Component\Serializer\Annotation\Groups;
+use Doctrine\Common\Collections\Collection;
 
 #[ORM\Entity(repositoryClass: UserRepository::class)]
 #[ORM\Table(name: '`user`')]
@@ -43,8 +44,8 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
     #[ORM\OneToOne(mappedBy: 'owner', cascade: ['persist', 'remove'])]
     private ?Cart $cart = null;
 
-    #[ORM\OneToOne(mappedBy: 'owner', cascade: ['persist', 'remove'])]
-    private ?Order $orders = null;
+    #[ORM\OneToMany(targetEntity: Order::class, mappedBy: 'owner', cascade: ['persist', 'remove'])]
+    private ?Collection $orders = null;
 
     #[ORM\Column(enumType: UserRole::class)]
     private ?UserRole $role = null;
@@ -155,20 +156,17 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
         return $this;
     }
 
-    public function getOrders(): ?Order
+    public function getOrders(): ?Collection
     {
         return $this->orders;
     }
 
-    public function setOrders(Order $orders): static
+    public function addOrder(Order $order): static
     {
-        // set the owning side of the relation if necessary
-        if ($orders->getOwner() !== $this) {
-            $orders->setOwner($this);
+        if (!$this->orders->contains($order)) {
+            $this->orders->add($order);
+            $order->setOwner($this);
         }
-
-        $this->orders = $orders;
-
         return $this;
     }
 
