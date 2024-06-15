@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace App\Controller;
 
 use App\Entity\CartItem;
+use App\Entity\OrderItem;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Component\HttpFoundation\JsonResponse;
@@ -43,7 +44,7 @@ final class ReportController extends AbstractController
 
     private function generateReportFile(string $reportId, EntityManagerInterface $em): string
     {
-        $soldItems = $em->getRepository(CartItem::class)->findAll();
+        $soldItems = $em->getRepository(OrderItem::class)->findAll();
 
         $filePath = __DIR__ . '/../../var/reports/' . $reportId . '.jsonl';
         $fileHandle = fopen($filePath, 'w');
@@ -54,7 +55,7 @@ final class ReportController extends AbstractController
                 'price' => $item->getCost(),
                 'amount' => $item->getQuantity(),
                 'user' => [
-                    'id' => $item->getCart()->getOwner()->getId()
+                    'id' => $item->getOrder()->getOwner()->getId()
                 ]
             ]);
 
