@@ -4,28 +4,15 @@ declare(strict_types=1);
 
 namespace App\Service;
 
-use Symfony\Component\Mailer\MailerInterface;
-use Symfony\Component\Mime\Email;
-
 final readonly class NotificationService
 {
-    public function __construct(private MailerInterface $mailer)
+    public function sendEmail(string $message): void
     {
+        //send to responsible microservice
     }
 
-    public function sendEmail(string $to, string $subject, string $body): void
+    public function sendSMS(string $message)
     {
-        $email = (new Email())
-            ->from('hello@example.com')
-            ->to($to)
-            ->subject($subject)
-            ->text($body);
-
-        $this->mailer->send($email);
-    }
-
-    public function sendSMS(string $phone, string $message)
-    {
-        //do nothing
+        //send to responsible microservice
     }
 }
