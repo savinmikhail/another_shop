@@ -22,7 +22,8 @@ final class Version20240615115837 extends AbstractMigration
         // this up() migration is auto-generated, please modify it to your needs
         $this->addSql('CREATE SEQUENCE address_id_seq INCREMENT BY 1 MINVALUE 1 START 1');
         $this->addSql('CREATE TABLE address (id INT NOT NULL, kladr_id INT DEFAULT NULL, full_address VARCHAR(255) DEFAULT NULL, PRIMARY KEY(id))');
-        $this->addSql('ALTER TABLE "order" ADD delivery_type VARCHAR(255) NOT NULL');
+        $this->addSql('ALTER TABLE "order" ADD COLUMN delivery_type VARCHAR(255) DEFAULT \'selfdelivery\' NOT NULL');
+        $this->addSql('UPDATE "order" SET delivery_type = \'selfdelivery\' WHERE delivery_type IS NULL');
     }
 
     public function down(Schema $schema): void
