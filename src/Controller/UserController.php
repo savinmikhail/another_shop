@@ -15,6 +15,7 @@ use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\PasswordHasher\Hasher\UserPasswordHasherInterface;
 use Symfony\Component\Routing\Annotation\Route;
 use Symfony\Component\EventDispatcher\EventDispatcherInterface;
+use function json_decode;
 
 final class UserController extends AbstractController
 {
@@ -48,5 +49,18 @@ final class UserController extends AbstractController
         $this->eventDispatcher->dispatch($event, UserRegisteredEvent::NAME);
 
         return new JsonResponse(['message' => 'User registered successfully'], Response::HTTP_CREATED);
+    }
+
+    #[Route('/api/admin/user', name: 'admin_user_edit', methods: ['PATCH'])]
+    public function edit(
+        Request $request,
+        EntityManagerInterface $em
+    ): JsonResponse {
+        $data = json_decode($request->getContent(), true);
+        $user = $em->getRepository(User::class)->find($data['id']);
+        $user->setRole(UserRole::tryFrom($data['role']));
+        $em->persist($user);
+        $em->flush();
+        return new JsonResponse(['message' => 'User data saved successfully'], Response::HTTP_OK);
     }
 }
