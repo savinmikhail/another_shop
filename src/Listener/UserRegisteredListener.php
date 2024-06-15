@@ -26,6 +26,6 @@ final readonly class UserRegisteredListener
             'promoId' => uniqid(),
         ];
 
-        $this->notificationService->sendSMS($user->getPhone(), json_encode($message));
+        $this->notificationService->sendSMS(json_encode($message));
     }
 }
