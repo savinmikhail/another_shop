@@ -2,6 +2,7 @@
 
 namespace App\Entity;
 
+use App\Enum\DeliveryType;
 use App\Enum\OrderStatus;
 use App\Repository\OrderRepository;
 use Doctrine\Common\Collections\ArrayCollection;
@@ -29,6 +30,9 @@ class Order
      */
     #[ORM\OneToMany(targetEntity: OrderItem::class, mappedBy: 'orders', orphanRemoval: true)]
     private Collection $orderItems;
+
+    #[ORM\Column(enumType: DeliveryType::class)]
+    private ?DeliveryType $deliveryType = null;
 
     public function __construct()
     {
@@ -90,6 +94,18 @@ class Order
                 $orderItem->setOrder(null);
             }
         }
+
+        return $this;
+    }
+
+    public function getDeliveryType(): ?DeliveryType
+    {
+        return $this->deliveryType;
+    }
+
+    public function setDeliveryType(DeliveryType $deliveryType): static
+    {
+        $this->deliveryType = $deliveryType;
 
         return $this;
     }

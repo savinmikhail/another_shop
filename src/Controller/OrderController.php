@@ -7,6 +7,7 @@ namespace App\Controller;
 use App\Entity\Order;
 use App\Entity\OrderItem;
 use App\Entity\User;
+use App\Enum\DeliveryType;
 use App\Enum\OrderStatus;
 use App\Service\NotificationService;
 use Doctrine\ORM\EntityManagerInterface;
@@ -58,7 +59,10 @@ final class OrderController extends AbstractController
             $em->persist($orderItem);
             $cart->removeCartItem($cartItem);
         }
-
+        $deliveryType = DeliveryType::tryFrom($data['deliveryType']);
+        if (! $deliveryType) {
+            return $this->json('incorrect delivery type', Response::HTTP_UNPROCESSABLE_ENTITY);
+        }
         $em->persist($order);
         $em->flush();
 
