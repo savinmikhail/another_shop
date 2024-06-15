@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace App\Controller;
 
 use App\Entity\Order;
+use App\Entity\OrderItem;
 use App\Entity\User;
 use App\Enum\OrderStatus;
 use App\Service\NotificationService;
@@ -46,6 +47,18 @@ final class OrderController extends AbstractController
         $order
             ->setStatus(OrderStatus::PAYED)
             ->setOwner($user);
+        foreach ($items as $cartItem) {
+            $orderItem = new OrderItem();
+            $orderItem
+                ->setProduct($cartItem->getProduct())
+                ->setQuantity($cartItem->getQuantity())
+                ->setCost($cartItem->getCost())
+                ->setOrder($order);
+
+            $em->persist($orderItem);
+            $cart->removeCartItem($cartItem);
+        }
+
         $em->persist($order);
         $em->flush();
 
