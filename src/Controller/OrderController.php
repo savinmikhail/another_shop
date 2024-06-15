@@ -9,6 +9,8 @@ use App\Entity\Order;
 use App\Entity\OrderItem;
 use App\Entity\User;
 use App\Enum\DeliveryType;
+use App\Enum\MessageType;
+use App\Enum\NotificationType;
 use App\Enum\OrderStatus;
 use App\Service\NotificationService;
 use Doctrine\ORM\EntityManagerInterface;
@@ -16,6 +18,7 @@ use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\Routing\Annotation\Route;
+
 use function json_decode;
 use function json_encode;
 
@@ -49,6 +52,8 @@ final class OrderController extends AbstractController
         $order
             ->setStatus(OrderStatus::PAYED)
             ->setOwner($user);
+        $em->persist($order); // Persist order first to get its ID
+
         foreach ($items as $cartItem) {
             $orderItem = new OrderItem();
             $orderItem
@@ -70,17 +75,38 @@ final class OrderController extends AbstractController
         }
         $order->setDeliveryType($deliveryType);
         $order->setDeliveryAddress($address);
-        $em->persist($order);
         $em->flush();
 
-        $notificationService->sendEmail($this->generateNotification());
+        $notificationService->sendEmail($this->generateNotification($user, $order));
 
         return $this->json(['status' => 'Order created']);
     }
 
-    private function generateNotification(): string
+    private function generateNotification(User $user, Order $order): string
     {
-        return json_encode(['todo: implement']);
+        $orderItems = $order->getOrderItems()->map(static function (OrderItem $item): array {
+            return [
+                'name' => $item->getProduct()->getName(),
+                'cost' => $item->getCost(),
+                'additionalInfo' => $item->getProduct()->getDescription()
+            ];
+        })->toArray();
+
+        $message = [
+            'type' => MessageType::EMAIL->value,
+            'userPhone' => $user->getPhone(),
+            'userEmail' => $user->getEmail(),
+            'notificationType' => NotificationType::SUCCESS_PAYMENT,
+            'orderNum' => (string) $order->getId(),
+            'orderItems' => $orderItems,
+            'deliveryType' => $order->getDeliveryType()->value,
+            'deliveryAddress' => [
+                'kladrId' => $order->getDeliveryAddress()->getKladrId(),
+                'fullAddress' => $order->getDeliveryAddress()->getFullAddress(),
+            ],
+        ];
+
+        return json_encode($message, JSON_PRETTY_PRINT | JSON_UNESCAPED_UNICODE);
     }
 
     #[Route('/api/admin/order', name: 'change_order_status', methods: ['PATCH'])]
