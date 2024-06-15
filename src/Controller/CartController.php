@@ -33,12 +33,12 @@ final class CartController extends AbstractController
         }
 
         $user = $this->getUser();
-        if (!$user) {
+        if (! $user) {
             return new JsonResponse(['error' => 'Unauthorized'], Response::HTTP_UNAUTHORIZED);
         }
 
         $cart = $user->getCart();
-        if (!$cart) {
+        if (! $cart) {
             $cart = new Cart();
             $cart->setOwner($user);
             $user->setCart($cart);
