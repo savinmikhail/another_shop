@@ -11,6 +11,7 @@ use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\Routing\Annotation\Route;
+use function json_decode;
 
 final class OrderController extends AbstractController
 {
@@ -32,8 +33,18 @@ final class OrderController extends AbstractController
         return $this->json(['status' => 'Order created']);
     }
 
-    #[Route('/api/order', name: 'create_order', methods: ['POST'])]
-    public function updateStatus()
+    #[Route('/api/admin/order', name: 'change_order_status', methods: ['PATCH'])]
+    public function updateStatus(
+        Request $request,
+        EntityManagerInterface $em,
+    )
     {
+        $data = json_decode($request->getContent(), true);
+
+        $order = $em->getRepository(Order::class)->find($data['id']);
+        $order->setStatus($data['status']);
+        $em->persist($order);
+        $em->flush();
+        return $this->json(['order status set to '. $order->getStatus()]);
     }
 }
