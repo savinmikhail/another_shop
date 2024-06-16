@@ -4,14 +4,18 @@ declare(strict_types=1);
 
 namespace App\Controller;
 
+use App\DTO\Order\CreateOrderDTO;
+use App\DTO\User\UserRegisterDTO;
 use App\Enum\UserRole;
-use App\Event\UserRegisteredEvent;
+use App\Service\UserService;
+use Exception;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use App\Entity\User;
 use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
+use Symfony\Component\HttpKernel\Attribute\MapRequestPayload;
 use Symfony\Component\PasswordHasher\Hasher\UserPasswordHasherInterface;
 use Symfony\Component\Routing\Annotation\Route;
 use Symfony\Component\EventDispatcher\EventDispatcherInterface;
@@ -20,36 +24,22 @@ use function json_decode;
 
 final class UserController extends AbstractController
 {
-    public function __construct(private readonly EventDispatcherInterface $eventDispatcher)
-    {
+    public function __construct(
+        private readonly UserService $userService,
+    ) {
     }
 
     #[Route('/api/register', name: 'api_register', methods: ['POST'])]
     public function register(
-        Request $request,
-        UserPasswordHasherInterface $passwordHasher,
-        EntityManagerInterface $em
+        #[MapRequestPayload] UserRegisterDTO $userRegisterDTO
     ): JsonResponse {
-        $data = json_decode($request->getContent(), true);
 
-        $user = new User();
-        $user->setEmail($data['email'])
-            ->setPhone($data['phone'])
-            ->setPassword(
-                $passwordHasher->hashPassword(
-                    $user,
-                    $data['password']
-                )
-            )
-            ->setRole(UserRole::USER);
-
-        $em->persist($user);
-        $em->flush();
-
-        $event = new UserRegisteredEvent($user);
-        $this->eventDispatcher->dispatch($event, UserRegisteredEvent::NAME);
-
-        return new JsonResponse(['message' => 'User registered successfully'], Response::HTTP_CREATED);
+        try {
+            $this->userService->register($userRegisterDTO);
+            return new JsonResponse(['message' => 'User registered successfully'], Response::HTTP_CREATED);
+        } catch (Exception $e) {
+            return $this->json($e->getMessage(), Response::HTTP_BAD_REQUEST);
+        }
     }
 
     #[Route('/api/admin/user', name: 'admin_user_edit', methods: ['PATCH'])]
