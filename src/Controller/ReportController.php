@@ -26,8 +26,11 @@ final class ReportController extends AbstractController
         return new JsonResponse(['reportId' => $reportId], Response::HTTP_ACCEPTED);
     }
 
-    private function generateReportAsync(string $reportId, EntityManagerInterface $em, HttpClientInterface $httpClient): void
-    {
+    private function generateReportAsync(
+        string $reportId,
+        EntityManagerInterface $em,
+        HttpClientInterface $httpClient
+    ): void {
         $reportFilePath = $this->generateReportFile($reportId, $em);
 
         // Send an event to Kafka about the report generation status
