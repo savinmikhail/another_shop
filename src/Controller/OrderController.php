@@ -4,124 +4,58 @@ declare(strict_types=1);
 
 namespace App\Controller;
 
-use App\Entity\Address;
+use App\DTO\CreateOrderRequest;
 use App\Entity\Order;
-use App\Entity\OrderItem;
 use App\Entity\User;
-use App\Enum\DeliveryType;
-use App\Enum\MessageType;
-use App\Enum\NotificationType;
 use App\Enum\OrderStatus;
-use App\Service\NotificationService;
+use App\Service\OrderService;
 use Doctrine\ORM\EntityManagerInterface;
 use Exception;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\Routing\Annotation\Route;
+use Symfony\Component\Serializer\SerializerInterface;
+use Symfony\Component\Validator\Validator\ValidatorInterface;
 
 use function json_decode;
-use function json_encode;
 
 final class OrderController extends AbstractController
 {
+    public function __construct(private readonly OrderService $orderService)
+    {
+    }
+
     #[Route('/api/order', name: 'create_order', methods: ['POST'])]
     public function createOrder(
         Request $request,
-        EntityManagerInterface $em,
-        NotificationService $notificationService
+        ValidatorInterface $validator,
+        SerializerInterface $serializer,
     ): Response {
-        $data = json_decode($request->getContent(), true);
+        $createOrderRequest = $serializer->deserialize($request->getContent(), CreateOrderRequest::class, 'json');
+
+        // Validate the DTO
+        $errors = $validator->validate($createOrderRequest);
+        if (count($errors) > 0) {
+            return $this->json((string) $errors, Response::HTTP_BAD_REQUEST);
+        }
+
         /** @var User $user */
         $user = $this->getUser();
-        $cart = $user->getCart();
-        if (! $cart) {
-            return $this->json('empty cart', Response::HTTP_UNPROCESSABLE_ENTITY);
-        }
-        $items = $cart->getCartItem();
-        if ($items->count() < 1) {
-            return $this->json(['nothing to purchase'], Response::HTTP_BAD_REQUEST);
-        }
-        if ($items->count() > 20) {
-            return $this->json(['you cannot purchase more than 20 items per once'], Response::HTTP_BAD_REQUEST);
-        }
-        if (! $data['deliveryType']) {
-            return $this->json(['choose delivery type'], Response::HTTP_UNPROCESSABLE_ENTITY);
-        }
-        $deliveryType = DeliveryType::tryFrom($data['deliveryType']);
-        if (!$deliveryType) {
-            return $this->json('incorrect delivery type', Response::HTTP_UNPROCESSABLE_ENTITY);
-        }
-        $address = $em->getRepository(Address::class)->find($data['addressId']);
-        if (!$address && $deliveryType === DeliveryType::COURIER) {
-            return $this->json('such address does not exist', Response::HTTP_UNPROCESSABLE_ENTITY);
-        }
-        $em->getConnection()->beginTransaction(); // Start transaction
+
         try {
-
-            $order = new Order();
-            $order
-                ->setStatus(OrderStatus::PAYED)
-                ->setOwner($user);
-            $em->persist($order); // Persist order first to get its ID
-
-            foreach ($items as $cartItem) {
-                $orderItem = new OrderItem();
-                $orderItem
-                    ->setProduct($cartItem->getProduct())
-                    ->setQuantity($cartItem->getQuantity())
-                    ->setCost($cartItem->getCost());
-
-                $order->addOrderItem($orderItem);
-                $em->persist($orderItem);
-                $cart->removeCartItem($cartItem);
-            }
-            $order->setDeliveryType($deliveryType);
-            $order->setDeliveryAddress($address);
-            $em->flush();
-            $em->getConnection()->commit(); // Commit transaction
-            $notificationService->sendEmail($this->generateNotification($user, $order));
-
+            $this->orderService->create($createOrderRequest, $user);
             return $this->json(['status' => 'Order created']);
         } catch (Exception $e) {
-            $em->getConnection()->rollBack();
-            throw $e;
+            return $this->json($e->getMessage(), Response::HTTP_BAD_REQUEST);
         }
-    }
-
-    private function generateNotification(User $user, Order $order): string
-    {
-        $orderItems = $order->getOrderItems()->map(static function (OrderItem $item): array {
-            return [
-                'name' => $item->getProduct()->getName(),
-                'cost' => $item->getCost(),
-                'additionalInfo' => $item->getProduct()->getDescription()
-            ];
-        })->toArray();
-
-        $message = [
-            'type' => MessageType::EMAIL->value,
-            'userPhone' => $user->getPhone(),
-            'userEmail' => $user->getEmail(),
-            'notificationType' => NotificationType::SUCCESS_PAYMENT,
-            'orderNum' => (string) $order->getId(),
-            'orderItems' => $orderItems,
-            'deliveryType' => $order->getDeliveryType()->value,
-            'deliveryAddress' => [
-                'kladrId' => $order->getDeliveryAddress()->getKladrId(),
-                'fullAddress' => $order->getDeliveryAddress()->getFullAddress(),
-            ],
-        ];
-
-        return json_encode($message, JSON_PRETTY_PRINT | JSON_UNESCAPED_UNICODE);
     }
 
     #[Route('/api/admin/order', name: 'change_order_status', methods: ['PATCH'])]
     public function updateStatus(
         Request $request,
         EntityManagerInterface $em,
-    )
-    {
+    ) {
         $data = json_decode($request->getContent(), true);
 
         $order = $em->getRepository(Order::class)->find($data['id']);
@@ -135,6 +69,6 @@ final class OrderController extends AbstractController
         $order->setStatus($status);
         $em->persist($order);
         $em->flush();
-        return $this->json(['order status set to '. $order->getStatus()->value]);
+        return $this->json(['order status set to ' . $order->getStatus()->value]);
     }
 }
