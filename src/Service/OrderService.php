@@ -5,7 +5,7 @@ declare(strict_types=1);
 namespace App\Service;
 
 use App\DTO\CreateOrderDTO;
-use App\Entity\Address;
+use App\DTO\UpdateOrderStatusDTO;
 use App\Entity\Order;
 use App\Entity\OrderItem;
 use App\Entity\User;
@@ -15,8 +15,8 @@ use App\Enum\NotificationType;
 use App\Enum\OrderStatus;
 use App\Repository\AddressRepository;
 use Exception;
-use Symfony\Component\HttpFoundation\Response;
 use Doctrine\ORM\EntityManagerInterface;
+use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\HttpKernel\Exception\BadRequestHttpException;
 use Symfony\Component\HttpKernel\Exception\UnprocessableEntityHttpException;
 
@@ -34,6 +34,9 @@ final readonly class OrderService
     ) {
     }
 
+    /**
+     * @throws Exception
+     */
     public function create(CreateOrderDTO $createOrderRequest, User $user): void
     {
         $cart = $user->getCart();
@@ -41,14 +44,15 @@ final readonly class OrderService
             throw new UnprocessableEntityHttpException('Empty cart.');
         }
         $items = $cart->getCartItem();
-        if ($items->count() < 1) {
+        $count = $items->count();
+        if ($count < 1) {
             throw new BadRequestHttpException('Nothing to purchase.');
         }
-        if ($items->count() > 20) {
+        if ($count > 20) {
             throw new BadRequestHttpException('You cannot purchase more than 20 items per once.');
         }
         $deliveryType = DeliveryType::tryFrom($createOrderRequest->deliveryType);
-        if (!$deliveryType) {
+        if (! $deliveryType) {
             throw new UnprocessableEntityHttpException('Incorrect delivery type.');
         }
         $address = $this->addressRepository->find($createOrderRequest->addressId);
@@ -111,5 +115,19 @@ final readonly class OrderService
         ];
 
         return json_encode($message, JSON_PRETTY_PRINT | JSON_UNESCAPED_UNICODE);
+    }
+
+    public function updateStatus(UpdateOrderStatusDTO $updateOrderStatusDTO): void
+    {
+        $order = $this->em->getRepository(Order::class)->find($updateOrderStatusDTO->id);
+        if (! $order) {
+            throw new UnprocessableEntityHttpException('No such order');
+        }
+        $status = OrderStatus::tryFrom($updateOrderStatusDTO->status);
+        if (! $status) {
+            throw new UnprocessableEntityHttpException('Invalid status');
+        }
+        $order->setStatus($status);
+        $this->em->flush();
     }
 }

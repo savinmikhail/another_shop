@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace App\Controller;
 
 use App\DTO\CreateOrderDTO;
+use App\DTO\UpdateOrderStatusDTO;
 use App\Entity\Order;
 use App\Entity\User;
 use App\Enum\OrderStatus;
@@ -45,22 +46,13 @@ final class OrderController extends AbstractController
 
     #[Route('/api/admin/order', name: 'change_order_status', methods: ['PATCH'])]
     public function updateStatus(
-        Request $request,
-        EntityManagerInterface $em,
+        #[MapRequestPayload] UpdateOrderStatusDTO $updateOrderStatusDTO
     ) {
-        $data = json_decode($request->getContent(), true);
-
-        $order = $em->getRepository(Order::class)->find($data['id']);
-        if (!$order) {
-            return $this->json('no such order', Response::HTTP_UNPROCESSABLE_ENTITY);
+        try {
+            $this->orderService->updateStatus($updateOrderStatusDTO);
+            return $this->json(['order status was updated']);
+        } catch (Exception $e) {
+            return $this->json($e->getMessage(), Response::HTTP_BAD_REQUEST);
         }
-        $status = OrderStatus::tryFrom($data['status']);
-        if (!$status) {
-            return $this->json('invalid status', Response::HTTP_BAD_REQUEST);
-        }
-        $order->setStatus($status);
-        $em->persist($order);
-        $em->flush();
-        return $this->json(['order status set to ' . $order->getStatus()->value]);
     }
 }
