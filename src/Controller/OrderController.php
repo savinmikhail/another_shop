@@ -14,6 +14,7 @@ use App\Enum\NotificationType;
 use App\Enum\OrderStatus;
 use App\Service\NotificationService;
 use Doctrine\ORM\EntityManagerInterface;
+use Exception;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
@@ -47,39 +48,45 @@ final class OrderController extends AbstractController
         if (! $data['deliveryType']) {
             return $this->json(['choose delivery type'], Response::HTTP_UNPROCESSABLE_ENTITY);
         }
-
-        $order = new Order();
-        $order
-            ->setStatus(OrderStatus::PAYED)
-            ->setOwner($user);
-        $em->persist($order); // Persist order first to get its ID
-
-        foreach ($items as $cartItem) {
-            $orderItem = new OrderItem();
-            $orderItem
-                ->setProduct($cartItem->getProduct())
-                ->setQuantity($cartItem->getQuantity())
-                ->setCost($cartItem->getCost())
-                ->setOrder($order);
-
-            $em->persist($orderItem);
-            $cart->removeCartItem($cartItem);
-        }
         $deliveryType = DeliveryType::tryFrom($data['deliveryType']);
-        if (! $deliveryType) {
+        if (!$deliveryType) {
             return $this->json('incorrect delivery type', Response::HTTP_UNPROCESSABLE_ENTITY);
         }
         $address = $em->getRepository(Address::class)->find($data['addressId']);
-        if (! $address && $deliveryType === DeliveryType::COURIER) {
+        if (!$address && $deliveryType === DeliveryType::COURIER) {
             return $this->json('such address does not exist', Response::HTTP_UNPROCESSABLE_ENTITY);
         }
-        $order->setDeliveryType($deliveryType);
-        $order->setDeliveryAddress($address);
-        $em->flush();
+        $em->getConnection()->beginTransaction(); // Start transaction
+        try {
 
-        $notificationService->sendEmail($this->generateNotification($user, $order));
+            $order = new Order();
+            $order
+                ->setStatus(OrderStatus::PAYED)
+                ->setOwner($user);
+            $em->persist($order); // Persist order first to get its ID
 
-        return $this->json(['status' => 'Order created']);
+            foreach ($items as $cartItem) {
+                $orderItem = new OrderItem();
+                $orderItem
+                    ->setProduct($cartItem->getProduct())
+                    ->setQuantity($cartItem->getQuantity())
+                    ->setCost($cartItem->getCost());
+
+                $order->addOrderItem($orderItem);
+                $em->persist($orderItem);
+                $cart->removeCartItem($cartItem);
+            }
+            $order->setDeliveryType($deliveryType);
+            $order->setDeliveryAddress($address);
+            $em->flush();
+            $em->getConnection()->commit(); // Commit transaction
+            $notificationService->sendEmail($this->generateNotification($user, $order));
+
+            return $this->json(['status' => 'Order created']);
+        } catch (Exception $e) {
+            $em->getConnection()->rollBack();
+            throw $e;
+        }
     }
 
     private function generateNotification(User $user, Order $order): string
