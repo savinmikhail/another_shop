@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 namespace App\Service;
 
-use App\DTO\CreateOrderRequest;
+use App\DTO\CreateOrderDTO;
 use App\Entity\Address;
 use App\Entity\Order;
 use App\Entity\OrderItem;
@@ -34,7 +34,7 @@ final readonly class OrderService
     ) {
     }
 
-    public function create(CreateOrderRequest $createOrderRequest, User $user): void
+    public function create(CreateOrderDTO $createOrderRequest, User $user): void
     {
         $cart = $user->getCart();
         if (! $cart) {
