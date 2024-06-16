@@ -4,11 +4,13 @@ declare(strict_types=1);
 
 namespace App\Service;
 
+use App\DTO\User\UserEditRoleDTO;
 use App\DTO\User\UserRegisterDTO;
 use App\Entity\User;
 use App\Enum\UserRole;
 use App\Event\UserRegisteredEvent;
 use Doctrine\ORM\EntityManagerInterface;
+use Exception;
 use Symfony\Component\EventDispatcher\EventDispatcherInterface;
 use Symfony\Component\PasswordHasher\Hasher\UserPasswordHasherInterface;
 
@@ -40,5 +42,16 @@ final readonly class UserService
 
         $event = new UserRegisteredEvent($user);
         $this->eventDispatcher->dispatch($event, UserRegisteredEvent::NAME);
+    }
+
+    public function editRole(UserEditRoleDTO $editRoleDTO): void
+    {
+        $user = $this->em->getRepository(User::class)->find($editRoleDTO->id);
+        $role = UserRole::tryFrom($editRoleDTO->role);
+        if (! $role) {
+            throw new Exception('invalid role supplied');
+        }
+        $user->setRole($role);
+        $this->em->flush();
     }
 }
