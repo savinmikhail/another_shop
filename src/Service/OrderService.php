@@ -4,8 +4,8 @@ declare(strict_types=1);
 
 namespace App\Service;
 
-use App\DTO\CreateOrderDTO;
-use App\DTO\UpdateOrderStatusDTO;
+use App\DTO\Order\CreateOrderDTO;
+use App\DTO\Order\UpdateOrderStatusDTO;
 use App\Entity\Order;
 use App\Entity\OrderItem;
 use App\Entity\User;
@@ -14,9 +14,8 @@ use App\Enum\MessageType;
 use App\Enum\NotificationType;
 use App\Enum\OrderStatus;
 use App\Repository\AddressRepository;
-use Exception;
 use Doctrine\ORM\EntityManagerInterface;
-use Symfony\Component\HttpFoundation\Response;
+use Exception;
 use Symfony\Component\HttpKernel\Exception\BadRequestHttpException;
 use Symfony\Component\HttpKernel\Exception\UnprocessableEntityHttpException;
 

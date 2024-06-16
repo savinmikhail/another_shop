@@ -4,23 +4,15 @@ declare(strict_types=1);
 
 namespace App\Controller;
 
-use App\DTO\CreateOrderDTO;
-use App\DTO\UpdateOrderStatusDTO;
-use App\Entity\Order;
+use App\DTO\Order\CreateOrderDTO;
+use App\DTO\Order\UpdateOrderStatusDTO;
 use App\Entity\User;
-use App\Enum\OrderStatus;
 use App\Service\OrderService;
-use Doctrine\ORM\EntityManagerInterface;
 use Exception;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
-use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\HttpKernel\Attribute\MapRequestPayload;
 use Symfony\Component\Routing\Annotation\Route;
-use Symfony\Component\Serializer\SerializerInterface;
-use Symfony\Component\Validator\Validator\ValidatorInterface;
-
-use function json_decode;
 
 final class OrderController extends AbstractController
 {
