@@ -18,6 +18,7 @@ services:
         exclude:
             - '../src/DependencyInjection/'
             - '../src/Entity/'
+            - '../src/Consumer'
             - '../src/Kernel.php'
 
     # add more service definitions when explicit configuration is needed
@@ -25,3 +26,10 @@ services:
     App\Listener\UserRegisteredListener:
         tags:
             - { name: 'kernel.event_listener', event: 'user.registered', method: 'onUserRegistered' }
+
+    App\Consumer\MessageConsumer0:
+        class: App\Consumer\MessageConsumer
+        arguments:
+            $topic: !php/const App\Service\KafkaService::SEND_MESSAGE_TOPIC
+            $groupId: group1
+            $name: send_message0
