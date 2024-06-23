@@ -40,6 +40,9 @@
             "migrations/.gitignore"
         ]
     },
+    "koco/messenger-kafka": {
+        "version": "v0.18"
+    },
     "lexik/jwt-authentication-bundle": {
         "version": "3.0",
         "recipe": {
@@ -63,6 +66,9 @@
         "files": [
             "config/packages/nelmio_cors.yaml"
         ]
+    },
+    "simpod/kafka-bundle": {
+        "version": "0.6.3"
     },
     "squizlabs/php_codesniffer": {
         "version": "3.10",
@@ -139,6 +145,18 @@
             "version": "1.0",
             "ref": "fadbfe33303a76e25cb63401050439aa9b1a9c7f"
         }
+    },
+    "symfony/messenger": {
+        "version": "7.1",
+        "recipe": {
+            "repo": "github.com/symfony/recipes",
+            "branch": "main",
+            "version": "6.0",
+            "ref": "ba1ac4e919baba5644d31b57a3284d6ba12d52ee"
+        },
+        "files": [
+            "config/packages/messenger.yaml"
+        ]
     },
     "symfony/monolog-bundle": {
         "version": "3.10",
