@@ -14,4 +14,5 @@ return [
     Symfony\Bundle\WebProfilerBundle\WebProfilerBundle::class => ['dev' => true, 'test' => true],
     Symfony\Bundle\MonologBundle\MonologBundle::class => ['all' => true],
     SimPod\KafkaBundle\SimPodKafkaBundle::class => ['all' => true],
+    Koco\Kafka\KocoKafkaBundle::class => ['all' => true],
 ];
