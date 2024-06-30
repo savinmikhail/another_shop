@@ -1,4 +1,4 @@
-.PHONY: test, check, run, start, restart, ps
+.PHONY: test, check, run, start, restart, ps, migrate, consume
 
 start:
 	docker-compose up -d
@@ -17,3 +17,9 @@ check:
 
 run:
 	php ./bin/comments_density analyze:comments
+
+migrate:
+	php bin/console doctrine:migration:migrate
+
+consume:
+	php bin/console kafka:consumer:run send_message0
