@@ -47,6 +47,9 @@ final readonly class UserService
     public function editRole(UserEditRoleDTO $editRoleDTO): void
     {
         $user = $this->em->getRepository(User::class)->find($editRoleDTO->id);
+        if (! $user) {
+            throw new Exception('Such user does not exist');
+        }
         $role = UserRole::tryFrom($editRoleDTO->role);
         if (! $role) {
             throw new Exception('invalid role supplied');
