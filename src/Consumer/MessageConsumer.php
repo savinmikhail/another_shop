@@ -2,12 +2,17 @@
 
 namespace App\Consumer;
 
-use App\Manager\MessageManager;
+use App\Service\KafkaService;
+use App\Service\ReportService;
 use RdKafka\Message;
 use SimPod\Kafka\Clients\Consumer\ConsumerConfig;
 use SimPod\Kafka\Clients\Consumer\KafkaConsumer;
 use SimPod\KafkaBundle\Kafka\Configuration;
 use SimPod\KafkaBundle\Kafka\Clients\Consumer\NamedConsumer;
+use Symfony\Component\Messenger\Transport\Serialization\PhpSerializer;
+use App\DTO\Message as MessageDTO;
+
+use const PHP_EOL;
 
 final class MessageConsumer implements NamedConsumer
 {
@@ -18,7 +23,8 @@ final class MessageConsumer implements NamedConsumer
         private readonly string $topic,
         private readonly string $groupId,
         private readonly string $name,
-        private readonly MessageManager $messageManager,
+        private readonly KafkaService $kafkaService,
+        private readonly ReportService $reportService,
     ) {
     }
 
@@ -28,13 +34,27 @@ final class MessageConsumer implements NamedConsumer
 
         $kafkaConsumer->subscribe([$this->topic]);
 
+        $serializer = new PhpSerializer();
+
         while (true) {
             $kafkaConsumer->start(
                 self::TIMEOUT_MS,
-                function (Message $message) use ($kafkaConsumer): void {
-                    $data = json_decode($message->payload, true, 512, JSON_THROW_ON_ERROR);
-                    $this->messageManager->createMessage($this->name . ' ' . $data['text']);
-                    echo $this->name . ' processed message: ' . $data['text'] . "\n";
+                function (Message $message) use ($kafkaConsumer, $serializer): void {
+                    $envelope = $serializer->decode([
+                        'body' => $message->payload,
+                        'headers' => [],
+                    ]);
+
+                    /** @var MessageDTO $generateReportMessage */
+                    $generateReportMessage = $envelope->getMessage();
+
+                    echo 'generating report' . $generateReportMessage->getText() . PHP_EOL;
+                    $this->reportService->generateReportFile($generateReportMessage->getText());
+
+                    $this->kafkaService->send(
+                        'report_generated',
+                        ['message' => 'Report ' . $generateReportMessage->getText() . ' was generated']
+                    );
 
                     $kafkaConsumer->commit($message);
                 }
