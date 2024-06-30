@@ -10,10 +10,6 @@ use Symfony\Component\Validator\Constraints as Assert;
 final readonly class CreateProductDTO
 {
     public function __construct(
-        #[Assert\Optional]
-        #[Assert\Type('integer')]
-        #[Assert\GreaterThan(0)]
-        public ?int $id,
         #[Assert\NotBlank]
         #[Assert\Type('string')]
         public string $name,
@@ -34,7 +30,10 @@ final readonly class CreateProductDTO
         #[Assert\NotBlank]
         #[Assert\Type('integer')]
         #[Assert\GreaterThan(0)]
-        public int $version
+        public int $version,
+        #[Assert\Type('integer')]
+        #[Assert\GreaterThan(0)]
+        public ?int $id = null,
     ) {
     }
 }
