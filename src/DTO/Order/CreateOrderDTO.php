@@ -12,7 +12,6 @@ final readonly class CreateOrderDTO
         #[Assert\NotBlank(message: 'Delivery type cannot be blank.')]
         #[Assert\Type('string')]
         public string $deliveryType,
-        #[Assert\Optional]
         #[Assert\Type('integer')]
         #[Assert\GreaterThan(0)]
         public ?int $addressId,
