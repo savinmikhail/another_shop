@@ -24,4 +24,3 @@ framework:
 
         routing:
             App\DTO\Message: kafka_producer
-
