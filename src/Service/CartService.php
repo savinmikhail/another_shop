@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace App\Service;
 
 use App\DTO\Cart\AddToCartDTO;
+use App\DTO\Cart\ShowCartDTO;
 use App\Entity\Cart;
 use App\Entity\CartItem;
 use App\Entity\Product;
@@ -68,5 +69,28 @@ final readonly class CartService
             $this->em->rollback();
             throw $e;
         }
+    }
+
+    public function show(User $user): ShowCartDTO
+    {
+        $cart = $user->getCart();
+        if (! $cart) {
+            $cart = new Cart();
+            $cart->setOwner($user);
+            $user->setCart($cart);
+            $this->em->persist($cart);
+        }
+        $items = $cart->getCartItem();
+        $total = 0;
+        $itemsForResponse = [];
+        foreach ($items as $item) {
+            $total += $item->getCost() * $item->getQuantity();
+            $itemsForResponse[] = [
+                'cost' => $item->getCost(),
+                'quantity' => $item->getQuantity(),
+                'product' => $item->getProduct()->getName()
+            ];
+        }
+        return new ShowCartDTO($itemsForResponse, $total);
     }
 }

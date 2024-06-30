@@ -21,7 +21,7 @@ final class CartController extends AbstractController
     ) {
     }
 
-    #[Route('/api/cart', name: 'add_item', methods: ['POST'])]
+    #[Route('/api/carts', name: 'add_item', methods: ['POST'])]
     public function create(
         #[MapRequestPayload] AddToCartDTO $addToCartDTO
     ): JsonResponse {
@@ -30,6 +30,19 @@ final class CartController extends AbstractController
             $user = $this->getUser();
             $this->cartService->add($addToCartDTO, $user);
             return $this->json('added to cart successfully', Response::HTTP_CREATED);
+        } catch (Exception $e) {
+            return $this->json($e->getMessage(), Response::HTTP_BAD_REQUEST);
+        }
+    }
+
+    #[Route('/api/carts', name: 'show_basket', methods: ['GET'])]
+    public function show(): JsonResponse
+    {
+        try {
+            /** @var User $user */
+            $user = $this->getUser();
+            $responseDTO = $this->cartService->show($user);
+            return $this->json($responseDTO, Response::HTTP_CREATED);
         } catch (Exception $e) {
             return $this->json($e->getMessage(), Response::HTTP_BAD_REQUEST);
         }
