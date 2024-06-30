@@ -26,9 +26,9 @@ services:
     working_dir: /app
     restart: always
     environment:
-      POSTGRES_DB: 'twitter'
-      POSTGRES_USER: 'user'
-      POSTGRES_PASSWORD: 'password'
+      POSTGRES_DB: 'another_shop'
+      POSTGRES_USER: 'dbuser'
+      POSTGRES_PASSWORD: 'dbpwd'
     volumes:
       - dump:/app/dump
       - postgresql:/var/lib/postgresql/data
