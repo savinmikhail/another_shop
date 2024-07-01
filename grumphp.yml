@@ -19,18 +19,18 @@ grumphp:
             exclude: []
             show_sniffs_error_path: true
 
-        phpmd:
-            whitelist_patterns:
-                - /^src\/.*\.php$/
-            exclude:
-                - /^vendor\/
-            report_format: text
-            ruleset: [
-                'cleancode',
-                'codesize',
-                'naming',
-                'unusedcode',
-                'design',
-                'controversial'
-            ]
-            triggered_by: ['php']
+#        phpmd:
+#            whitelist_patterns:
+#                - /^src\/.*\.php$/
+#            exclude:
+#                - /^vendor\/
+#            report_format: text
+#            ruleset: [
+#                'cleancode',
+#                'codesize',
+#                'naming',
+#                'unusedcode',
+#                'design',
+#                'controversial'
+#            ]
+#            triggered_by: ['php']

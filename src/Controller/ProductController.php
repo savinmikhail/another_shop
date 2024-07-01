@@ -36,12 +36,13 @@ final class ProductController extends AbstractController
     }
 
     #[Route('/api/products', name: 'get_products', methods: ['GET'])]
-    public function index(
-        EntityManagerInterface $em,
-        SerializerInterface $serializer
-    ): JsonResponse {
-        $products = $em->getRepository(Product::class)->findAll();
-        $jsonProducts = $serializer->serialize($products, 'json', ['groups' => 'product:read']);
-        return new JsonResponse($jsonProducts, Response::HTTP_OK, [], true);
+    public function index(): JsonResponse
+    {
+        try {
+            $response = $this->productService->index();
+            return new JsonResponse($response, Response::HTTP_OK, [], true);
+        } catch (Exception $e) {
+            return $this->json($e->getMessage(), Response::HTTP_BAD_REQUEST);
+        }
     }
 }

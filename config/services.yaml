@@ -33,3 +33,8 @@ services:
             $topic: !php/const App\Service\KafkaService::SEND_MESSAGE_TOPIC
             $groupId: group1
             $name: send_message0
+
+    Predis\Client:
+        class: Predis\Client
+        arguments:
+            - { host: '%env(REDIS_URL)%' }

@@ -15,4 +15,5 @@ return [
     Symfony\Bundle\MonologBundle\MonologBundle::class => ['all' => true],
     SimPod\KafkaBundle\SimPodKafkaBundle::class => ['all' => true],
     Koco\Kafka\KocoKafkaBundle::class => ['all' => true],
+    Snc\RedisBundle\SncRedisBundle::class => ['all' => true],
 ];

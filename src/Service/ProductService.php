@@ -7,15 +7,26 @@ namespace App\Service;
 use App\DTO\Product\CreateProductDTO;
 use App\Entity\Measurement;
 use App\Entity\Product;
+use DateTime;
 use Doctrine\ORM\EntityManagerInterface;
 use Doctrine\ORM\Exception\ORMException;
 use Doctrine\ORM\OptimisticLockException;
 use Exception;
+use Psr\Cache\CacheItemPoolInterface;
+use Psr\Cache\InvalidArgumentException;
+use Symfony\Component\Serializer\SerializerInterface;
+use Symfony\Contracts\Cache\CacheInterface;
+use Symfony\Contracts\Cache\ItemInterface;
+
+use function date_create;
 
 final readonly class ProductService
 {
     public function __construct(
-        private EntityManagerInterface $em
+        private EntityManagerInterface $em,
+        private CacheInterface $cache,
+        private SerializerInterface $serializer,
+        private CacheItemPoolInterface $cachePool
     ) {
     }
 
@@ -52,5 +63,19 @@ final readonly class ProductService
             $this->em->rollback();
             throw $e;
         }
+    }
+
+    /**
+     * @throws InvalidArgumentException
+     */
+    public function index(): string
+    {
+        $cacheKey = 'products_list';
+        return $this->cache->get($cacheKey, function (ItemInterface $item) {
+            $item->expiresAt((new DateTime())->modify('+1 day'));
+
+            $products = $this->em->getRepository(Product::class)->findAll();
+            return $this->serializer->serialize($products, 'json', ['groups' => 'product:read']);
+        });
     }
 }

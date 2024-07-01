@@ -42,7 +42,7 @@ final class CartController extends AbstractController
             /** @var User $user */
             $user = $this->getUser();
             $responseDTO = $this->cartService->show($user);
-            return $this->json($responseDTO, Response::HTTP_CREATED);
+            return $this->json($responseDTO, Response::HTTP_OK);
         } catch (Exception $e) {
             return $this->json($e->getMessage(), Response::HTTP_BAD_REQUEST);
         }

@@ -7,6 +7,8 @@ services:
     volumes:
       - ./:/app
     working_dir: /app
+    environment:
+      REDIS_URL: redis://redis:6379
 
   nginx:
     image: nginx
@@ -68,6 +70,11 @@ services:
       KAFKA_BROKERCONNECT: kafka:9092
     depends_on:
       - "kafka"
+
+  redis:
+    image: redis:7.0.0
+    ports:
+      - '6379:6379'
 
 volumes:
   dump:
