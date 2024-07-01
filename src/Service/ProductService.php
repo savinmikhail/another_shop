@@ -12,13 +12,10 @@ use Doctrine\ORM\EntityManagerInterface;
 use Doctrine\ORM\Exception\ORMException;
 use Doctrine\ORM\OptimisticLockException;
 use Exception;
-use Psr\Cache\CacheItemPoolInterface;
 use Psr\Cache\InvalidArgumentException;
 use Symfony\Component\Serializer\SerializerInterface;
 use Symfony\Contracts\Cache\CacheInterface;
 use Symfony\Contracts\Cache\ItemInterface;
-
-use function date_create;
 
 final readonly class ProductService
 {
@@ -26,7 +23,6 @@ final readonly class ProductService
         private EntityManagerInterface $em,
         private CacheInterface $cache,
         private SerializerInterface $serializer,
-        private CacheItemPoolInterface $cachePool
     ) {
     }
 
