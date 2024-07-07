@@ -16,4 +16,5 @@ return [
     SimPod\KafkaBundle\SimPodKafkaBundle::class => ['all' => true],
     Koco\Kafka\KocoKafkaBundle::class => ['all' => true],
     Snc\RedisBundle\SncRedisBundle::class => ['all' => true],
+    Doctrine\Bundle\FixturesBundle\DoctrineFixturesBundle::class => ['dev' => true, 'test' => true],
 ];
