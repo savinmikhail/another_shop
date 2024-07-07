@@ -12,7 +12,7 @@ use Symfony\Component\Serializer\Annotation\Groups;
 class Cart
 {
     #[ORM\Id]
-    #[ORM\GeneratedValue]
+    #[ORM\GeneratedValue(strategy: "SEQUENCE")]
     #[ORM\Column]
     #[Groups(['cart:read'])]
     private ?int $id = null;

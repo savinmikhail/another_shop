@@ -11,7 +11,7 @@ use Symfony\Component\Serializer\Attribute\MaxDepth;
 class Product
 {
     #[ORM\Id]
-    #[ORM\GeneratedValue]
+    #[ORM\GeneratedValue(strategy: "SEQUENCE")]
     #[ORM\Column]
     #[Groups(['product:read', 'cart:read'])]
     private ?int $id = null;

@@ -16,7 +16,7 @@ use Doctrine\Common\Collections\Collection;
 class User implements UserInterface, PasswordAuthenticatedUserInterface
 {
     #[ORM\Id]
-    #[ORM\GeneratedValue]
+    #[ORM\GeneratedValue(strategy: "SEQUENCE")]
     #[ORM\Column]
     #[Groups(['cart:read'])]
     private int $id;

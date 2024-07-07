@@ -13,7 +13,7 @@ use Symfony\Component\Serializer\Annotation\Groups;
 class Measurement
 {
     #[ORM\Id]
-    #[ORM\GeneratedValue]
+    #[ORM\GeneratedValue(strategy: "SEQUENCE")]
     #[ORM\Column]
     #[Groups(['product:read'])]
     private ?int $id = null;
