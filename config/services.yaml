@@ -38,3 +38,7 @@ services:
         class: Predis\Client
         arguments:
             - { host: '%env(REDIS_URL)%' }
+
+    App\EventListener\ExceptionListener:
+        tags:
+            - { name: 'kernel.event_subscriber' }
