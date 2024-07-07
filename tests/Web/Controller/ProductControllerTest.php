@@ -1,24 +1,23 @@
 <?php
 
-namespace App\Tests\Controller;
+namespace App\Tests\Web\Controller;
 
-use Symfony\Bundle\FrameworkBundle\Test\WebTestCase;
+use App\Tests\Web\BaseTestCase;
 use Symfony\Component\HttpFoundation\Response;
 
 use function json_decode;
 
-class ProductControllerTest extends WebTestCase
+class ProductControllerTest extends BaseTestCase
 {
     public function testIndex(): void
     {
-        $client = static::createClient();
-        $client->request('GET', '/api/products');
+        $this->client->request('GET', '/api/products');
 
-        $this->assertEquals(Response::HTTP_OK, $client->getResponse()->getStatusCode());
+        $this->assertEquals(Response::HTTP_OK, $this->client->getResponse()->getStatusCode());
 
-        $this->assertTrue($client->getResponse()->headers->contains('Content-Type', 'application/json'));
+        $this->assertTrue($this->client->getResponse()->headers->contains('Content-Type', 'application/json'));
 
-        $content = $client->getResponse()->getContent();
+        $content = $this->client->getResponse()->getContent();
         $data = json_decode($content, true);
 
         $this->assertIsArray($data);
@@ -26,8 +25,6 @@ class ProductControllerTest extends WebTestCase
 
     public function testCreateProductSuccess(): void
     {
-        $client = static::createClient();
-
         $payload = [
             'name' => 'Test Product',
             'measurements' => [
@@ -42,7 +39,7 @@ class ProductControllerTest extends WebTestCase
             'version' => 1,
         ];
 
-        $client->request(
+        $this->client->request(
             'POST',
             '/api/products',
             [],
@@ -51,15 +48,13 @@ class ProductControllerTest extends WebTestCase
             json_encode($payload)
         );
 
-        $this->assertEquals(Response::HTTP_CREATED, $client->getResponse()->getStatusCode());
-        $this->assertJson($client->getResponse()->getContent());
-        $this->assertStringContainsString('product was added successfully', $client->getResponse()->getContent());
+        $this->assertEquals(Response::HTTP_CREATED, $this->client->getResponse()->getStatusCode());
+        $this->assertJson($this->client->getResponse()->getContent());
+        $this->assertStringContainsString('product was added successfully', $this->client->getResponse()->getContent());
     }
 
     public function testCreateProductValidationFailure(): void
     {
-        $client = static::createClient();
-
         // Payload with missing required fields
         $payload = [
             'name' => '',
@@ -75,7 +70,7 @@ class ProductControllerTest extends WebTestCase
             'version' => 1,
         ];
 
-        $client->request(
+        $this->client->request(
             'POST',
             '/api/products',
             [],
@@ -84,7 +79,7 @@ class ProductControllerTest extends WebTestCase
             json_encode($payload)
         );
 
-        $this->assertEquals(Response::HTTP_UNPROCESSABLE_ENTITY, $client->getResponse()->getStatusCode());
-        $this->assertJson($client->getResponse()->getContent());
+        $this->assertEquals(Response::HTTP_UNPROCESSABLE_ENTITY, $this->client->getResponse()->getStatusCode());
+        $this->assertJson($this->client->getResponse()->getContent());
     }
 }
