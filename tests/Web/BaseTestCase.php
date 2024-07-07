@@ -4,18 +4,22 @@ declare(strict_types=1);
 
 namespace App\Tests\Web;
 
-use App\Enum\UserRole;
+use App\DataFixtures\AddressFixture;
+use App\DataFixtures\ProductFixture;
+use App\DataFixtures\UserFixture;
+use Doctrine\Common\DataFixtures\Executor\ORMExecutor;
+use Doctrine\Common\DataFixtures\Loader;
+use Doctrine\Common\DataFixtures\Purger\ORMPurger;
 use Symfony\Bundle\FrameworkBundle\KernelBrowser;
 use Symfony\Bundle\FrameworkBundle\Test\WebTestCase;
 use Doctrine\ORM\Tools\SchemaTool;
 use Doctrine\ORM\EntityManagerInterface;
-use App\Entity\User;
 use Symfony\Component\PasswordHasher\Hasher\UserPasswordHasherInterface;
 
 class BaseTestCase extends WebTestCase
 {
     protected ?EntityManagerInterface $entityManager = null;
-    protected ?UserPasswordHasherInterface $passwordHasher = null;
+    protected UserPasswordHasherInterface $passwordHasher;
     protected KernelBrowser $client;
 
     protected function setUp(): void
@@ -34,8 +38,15 @@ class BaseTestCase extends WebTestCase
             $schemaTool->createSchema($metadata);
         }
 
-        // Create a user for authentication
-        $this->createTestUser();
+        // Load fixtures
+        $loader = new Loader();
+        $loader->addFixture(new ProductFixture());
+        $loader->addFixture(new UserFixture($this->passwordHasher));
+        $loader->addFixture(new AddressFixture());
+
+        $purger = new ORMPurger();
+        $executor = new ORMExecutor($this->entityManager, $purger);
+        $executor->execute($loader->getFixtures());
     }
 
     protected function tearDown(): void
@@ -43,19 +54,5 @@ class BaseTestCase extends WebTestCase
         parent::tearDown();
         $this->entityManager->close();
         $this->entityManager = null; // Avoid memory leaks
-    }
-
-    private function createTestUser(): void
-    {
-        $user = new User();
-        $user->setEmail('adminuser@example.com')
-            ->setPassword($this->passwordHasher->hashPassword($user, 'adminpassword'))
-            ->setRoles(['ROLE_ADMIN'])
-            ->setPhone('1234567890')
-            ->setName('name')
-            ->setRole(UserRole::ADMIN);
-
-        $this->entityManager->persist($user);
-        $this->entityManager->flush();
     }
 }
