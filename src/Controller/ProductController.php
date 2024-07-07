@@ -20,7 +20,7 @@ final class ProductController extends AbstractController
     ) {
     }
 
-    #[Route('/api/product', name: 'add_product', methods: ['POST'])]
+    #[Route('/api/products', name: 'add_product', methods: ['POST'])]
     public function create(
         #[MapRequestPayload] CreateProductDTO $createProductDTO,
     ): JsonResponse {
