@@ -39,7 +39,7 @@ final class OrderController extends AbstractController
     #[Route('/api/admin/order', name: 'change_order_status', methods: ['PATCH'])]
     public function updateStatus(
         #[MapRequestPayload] UpdateOrderStatusDTO $updateOrderStatusDTO
-    ) {
+    ): Response {
         try {
             $this->orderService->updateStatus($updateOrderStatusDTO);
             return $this->json(['order status was updated']);
