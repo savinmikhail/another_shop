@@ -47,9 +47,6 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
     #[ORM\OneToMany(targetEntity: Order::class, mappedBy: 'owner', cascade: ['persist', 'remove'])]
     private ?Collection $orders = null;
 
-    #[ORM\Column(enumType: UserRole::class)]
-    private ?UserRole $role = null;
-
     #[ORM\Column(length: 255)]
     private ?string $name = null;
 
@@ -102,9 +99,6 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
         $roles = $this->roles;
         // guarantee every user at least has ROLE_USER
         $roles[] = 'ROLE_USER';
-        if ($this->getRole() === UserRole::ADMIN) {
-            $roles[] = 'ROLE_ADMIN';
-        }
         return array_unique($roles);
     }
 
@@ -170,18 +164,6 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
             $this->orders->add($order);
             $order->setOwner($this);
         }
-        return $this;
-    }
-
-    public function getRole(): ?UserRole
-    {
-        return $this->role;
-    }
-
-    public function setRole(UserRole $role): static
-    {
-        $this->role = $role;
-
         return $this;
     }
 

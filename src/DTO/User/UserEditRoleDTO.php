@@ -10,7 +10,7 @@ final readonly class UserEditRoleDTO
 {
     public function __construct(
         #[Assert\NotBlank]
-        #[Assert\Type('integer')]
+        #[Assert\Choice(choices: ['ROLE_USER', 'ROLE_ADMIN'])]
         public int $role,
         #[Assert\NotBlank]
         #[Assert\Type('integer')]

@@ -7,7 +7,6 @@ namespace App\Service;
 use App\DTO\User\UserEditRoleDTO;
 use App\DTO\User\UserRegisterDTO;
 use App\Entity\User;
-use App\Enum\UserRole;
 use App\Event\UserRegisteredEvent;
 use Doctrine\ORM\EntityManagerInterface;
 use Exception;
@@ -35,7 +34,7 @@ final readonly class UserService
                 )
             )
             ->setName($userRegisterDTO->name)
-            ->setRole(UserRole::USER);
+            ->setRoles(['ROLE_USER']);
 
         $this->entityManager->persist($user);
         $this->entityManager->flush();
@@ -53,11 +52,7 @@ final readonly class UserService
         if (! $user) {
             throw new Exception('Such user does not exist');
         }
-        $role = UserRole::tryFrom($editRoleDTO->role);
-        if (! $role) {
-            throw new Exception('invalid role supplied');
-        }
-        $user->setRole($role);
+        $user->setRole($editRoleDTO->role);
         $this->entityManager->flush();
     }
 }
