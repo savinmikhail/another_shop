@@ -17,7 +17,7 @@ use Symfony\Component\PasswordHasher\Hasher\UserPasswordHasherInterface;
 final readonly class UserService
 {
     public function __construct(
-        private EntityManagerInterface $em,
+        private EntityManagerInterface $entityManager,
         private UserPasswordHasherInterface $passwordHasher,
         private EventDispatcherInterface $eventDispatcher
     ) {
@@ -37,16 +37,19 @@ final readonly class UserService
             ->setName($userRegisterDTO->name)
             ->setRole(UserRole::USER);
 
-        $this->em->persist($user);
-        $this->em->flush();
+        $this->entityManager->persist($user);
+        $this->entityManager->flush();
 
         $event = new UserRegisteredEvent($user);
         $this->eventDispatcher->dispatch($event, UserRegisteredEvent::NAME);
     }
 
+    /**
+     * @throws Exception
+     */
     public function editRole(UserEditRoleDTO $editRoleDTO): void
     {
-        $user = $this->em->getRepository(User::class)->find($editRoleDTO->id);
+        $user = $this->entityManager->getRepository(User::class)->find($editRoleDTO->id);
         if (! $user) {
             throw new Exception('Such user does not exist');
         }
@@ -55,6 +58,6 @@ final readonly class UserService
             throw new Exception('invalid role supplied');
         }
         $user->setRole($role);
-        $this->em->flush();
+        $this->entityManager->flush();
     }
 }
