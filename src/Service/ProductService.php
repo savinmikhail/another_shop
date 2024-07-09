@@ -20,7 +20,7 @@ use Symfony\Contracts\Cache\ItemInterface;
 final readonly class ProductService
 {
     public function __construct(
-        private EntityManagerInterface $em,
+        private EntityManagerInterface $entityManager,
         private CacheInterface $cache,
         private SerializerInterface $serializer,
     ) {
@@ -29,16 +29,15 @@ final readonly class ProductService
     /**
      * @throws OptimisticLockException
      * @throws ORMException
+     * @throws Exception
      */
     public function create(CreateProductDTO $createProductDTO): void
     {
-        if ($createProductDTO->id) {
-            $product = $this->em->find(Product::class, $createProductDTO->id);
-        } else {
-            $product = new Product();
-        }
+        $product = $createProductDTO->id
+            ? $this->entityManager->find(Product::class, $createProductDTO->id)
+            : new Product();
         $measurement = $product->getMeasurement() ?? new Measurement();
-        $this->em->beginTransaction();
+        $this->entityManager->beginTransaction();
         try {
             $measurement
                 ->setWeight($createProductDTO->measurements->weight)
@@ -52,11 +51,11 @@ final readonly class ProductService
                 ->setTax($createProductDTO->tax)
                 ->setVersion($createProductDTO->version)
                 ->setMeasurement($measurement);
-            $this->em->persist($product);
-            $this->em->flush();
-            $this->em->commit();
+            $this->entityManager->persist($product);
+            $this->entityManager->flush();
+            $this->entityManager->commit();
         } catch (Exception $e) {
-            $this->em->rollback();
+            $this->entityManager->rollback();
             throw $e;
         }
     }
