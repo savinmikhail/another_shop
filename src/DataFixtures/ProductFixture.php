@@ -14,8 +14,6 @@ class ProductFixture extends Fixture
     {
         $faker = Factory::create();
 
-
-
         // Create and persist products
         for ($i = 1; $i <= 10; $i++) {
             $measurement = new Measurement();
