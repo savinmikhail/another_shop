@@ -69,7 +69,7 @@ final readonly class ProductService
         return $this->cache->get($cacheKey, function (ItemInterface $item) {
             $item->expiresAt((new DateTime())->modify('+1 day'));
 
-            $products = $this->em->getRepository(Product::class)->findAll();
+            $products = $this->entityManager->getRepository(Product::class)->findAll();
             return $this->serializer->serialize($products, 'json', ['groups' => 'product:read']);
         });
     }
