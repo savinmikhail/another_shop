@@ -6,6 +6,7 @@ namespace App\Service;
 
 use App\DTO\Order\CreateOrderDTO;
 use App\DTO\Order\UpdateOrderStatusDTO;
+use App\Entity\Cart;
 use App\Entity\Order;
 use App\Entity\OrderItem;
 use App\Entity\User;
@@ -14,6 +15,7 @@ use App\Enum\MessageType;
 use App\Enum\NotificationType;
 use App\Enum\OrderStatus;
 use App\Repository\AddressRepository;
+use Doctrine\Common\Collections\Collection;
 use Doctrine\ORM\EntityManagerInterface;
 use Exception;
 use Symfony\Component\HttpKernel\Exception\BadRequestHttpException;
@@ -66,17 +68,7 @@ final readonly class OrderService
                 ->setOwner($user);
             $this->entityManager->persist($order);
 
-            foreach ($items as $cartItem) {
-                $orderItem = new OrderItem();
-                $orderItem
-                    ->setProduct($cartItem->getProduct())
-                    ->setQuantity($cartItem->getQuantity())
-                    ->setCost($cartItem->getCost());
-
-                $order->addOrderItem($orderItem);
-                $this->entityManager->persist($orderItem);
-                $cart->removeCartItem($cartItem);
-            }
+            $this->assignCartItemsToOrder($order, $cart, $items);
             $order->setDeliveryType($deliveryType);
             $order->setDeliveryAddress($address);
             $this->entityManager->flush();
@@ -86,6 +78,21 @@ final readonly class OrderService
         } catch (Exception $e) {
             $this->entityManager->rollBack();
             throw $e;
+        }
+    }
+
+    private function assignCartItemsToOrder(Order $order, Cart $cart, Collection $items): void
+    {
+        foreach ($items as $cartItem) {
+            $orderItem = new OrderItem();
+            $orderItem
+                ->setProduct($cartItem->getProduct())
+                ->setQuantity($cartItem->getQuantity())
+                ->setCost($cartItem->getCost());
+
+            $order->addOrderItem($orderItem);
+            $this->entityManager->persist($orderItem);
+            $cart->removeCartItem($cartItem);
         }
     }
 
