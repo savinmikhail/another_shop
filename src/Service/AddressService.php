@@ -11,7 +11,7 @@ use Doctrine\ORM\EntityManagerInterface;
 final readonly class AddressService
 {
     public function __construct(
-        private EntityManagerInterface $em,
+        private EntityManagerInterface $entityManager,
     ) {
     }
 
@@ -21,7 +21,7 @@ final readonly class AddressService
         $address
             ->setFullAddress($createAddressDTO->fullAddress)
             ->setKladrId($createAddressDTO->kladrId);
-        $this->em->persist($address);
-        $this->em->flush();
+        $this->entityManager->persist($address);
+        $this->entityManager->flush();
     }
 }
