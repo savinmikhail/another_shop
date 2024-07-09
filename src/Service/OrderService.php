@@ -27,7 +27,7 @@ use const JSON_UNESCAPED_UNICODE;
 final readonly class OrderService
 {
     public function __construct(
-        private EntityManagerInterface $em,
+        private EntityManagerInterface $entityManager,
         private NotificationService $notificationService,
         private AddressRepository $addressRepository,
     ) {
@@ -42,7 +42,7 @@ final readonly class OrderService
         if (! $cart) {
             throw new UnprocessableEntityHttpException('Empty cart.');
         }
-        $items = $cart->getCartItem();
+        $items = $cart->getCartItems();
         $count = $items->count();
         if ($count < 1) {
             throw new BadRequestHttpException('Nothing to purchase.');
@@ -58,13 +58,13 @@ final readonly class OrderService
         if (! $address && $deliveryType === DeliveryType::COURIER) {
             throw new UnprocessableEntityHttpException('Such address does not exist.');
         }
-        $this->em->beginTransaction();
+        $this->entityManager->beginTransaction();
         try {
             $order = new Order();
             $order
                 ->setStatus(OrderStatus::PAYED)
                 ->setOwner($user);
-            $this->em->persist($order);
+            $this->entityManager->persist($order);
 
             foreach ($items as $cartItem) {
                 $orderItem = new OrderItem();
@@ -74,17 +74,17 @@ final readonly class OrderService
                     ->setCost($cartItem->getCost());
 
                 $order->addOrderItem($orderItem);
-                $this->em->persist($orderItem);
+                $this->entityManager->persist($orderItem);
                 $cart->removeCartItem($cartItem);
             }
             $order->setDeliveryType($deliveryType);
             $order->setDeliveryAddress($address);
-            $this->em->flush();
-            $this->em->getConnection()->commit();
+            $this->entityManager->flush();
+            $this->entityManager->getConnection()->commit();
 
             $this->notificationService->sendEmail($this->generateNotification($user, $order));
         } catch (Exception $e) {
-            $this->em->rollBack();
+            $this->entityManager->rollBack();
             throw $e;
         }
     }
@@ -118,7 +118,7 @@ final readonly class OrderService
 
     public function updateStatus(UpdateOrderStatusDTO $updateOrderStatusDTO): void
     {
-        $order = $this->em->getRepository(Order::class)->find($updateOrderStatusDTO->id);
+        $order = $this->entityManager->getRepository(Order::class)->find($updateOrderStatusDTO->id);
         if (! $order) {
             throw new UnprocessableEntityHttpException('No such order');
         }
@@ -127,6 +127,6 @@ final readonly class OrderService
             throw new UnprocessableEntityHttpException('Invalid status');
         }
         $order->setStatus($status);
-        $this->em->flush();
+        $this->entityManager->flush();
     }
 }
