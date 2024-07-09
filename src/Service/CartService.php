@@ -18,7 +18,7 @@ use Exception;
 final readonly class CartService
 {
     public function __construct(
-        private EntityManagerInterface $em,
+        private EntityManagerInterface $entityManager,
     ) {
     }
 
@@ -26,26 +26,27 @@ final readonly class CartService
      * @throws OptimisticLockException
      * @throws ORMException
      * @throws \Doctrine\DBAL\Exception
+     * @throws Exception
      */
     public function add(AddToCartDTO $addToCartDTO, User $user): void
     {
-        $product = $this->em->find(Product::class, $addToCartDTO->productId);
+        $product = $this->entityManager->find(Product::class, $addToCartDTO->productId);
 
-        if (!$product) {
+        if (! $product) {
             throw new Exception('Product not found');
         }
-        $this->em->beginTransaction();
+        $this->entityManager->beginTransaction();
         try {
             $cart = $user->getCart();
             if (!$cart) {
                 $cart = new Cart();
                 $cart->setOwner($user);
                 $user->setCart($cart);
-                $this->em->persist($cart);
+                $this->entityManager->persist($cart);
             }
 
             // Check if the product is already in the cart
-            $cartItem = $cart->getCartItem()->filter(function (CartItem $item) use ($product): bool {
+            $cartItem = $cart->getCartItems()->filter(function (CartItem $item) use ($product): bool {
                 return $item->getProduct()->getId() === $product->getId();
             })->first();
 
@@ -60,13 +61,13 @@ final readonly class CartService
                     ->setProduct($product)
                     ->setQuantity(1);
                 $cart->addCartItem($cartItem);
-                $this->em->persist($cartItem);
+                $this->entityManager->persist($cartItem);
             }
 
-            $this->em->flush();
-            $this->em->getConnection()->commit();
+            $this->entityManager->flush();
+            $this->entityManager->getConnection()->commit();
         } catch (Exception $e) {
-            $this->em->rollback();
+            $this->entityManager->rollback();
             throw $e;
         }
     }
@@ -78,9 +79,9 @@ final readonly class CartService
             $cart = new Cart();
             $cart->setOwner($user);
             $user->setCart($cart);
-            $this->em->persist($cart);
+            $this->entityManager->persist($cart);
         }
-        $items = $cart->getCartItem();
+        $items = $cart->getCartItems();
         $total = 0;
         $itemsForResponse = [];
         foreach ($items as $item) {
