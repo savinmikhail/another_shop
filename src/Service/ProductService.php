@@ -19,6 +19,8 @@ use Symfony\Contracts\Cache\ItemInterface;
 
 final readonly class ProductService
 {
+    private const CACHE_KEY = 'products_list';
+
     public function __construct(
         private EntityManagerInterface $entityManager,
         private CacheInterface $cache,
@@ -54,6 +56,7 @@ final readonly class ProductService
             $this->entityManager->persist($product);
             $this->entityManager->flush();
             $this->entityManager->commit();
+            $this->invalidateCache();
         } catch (Exception $e) {
             $this->entityManager->rollback();
             throw $e;
@@ -65,12 +68,20 @@ final readonly class ProductService
      */
     public function index(): string
     {
-        $cacheKey = 'products_list';
-        return $this->cache->get($cacheKey, function (ItemInterface $item) {
+        return $this->cache->get(self::CACHE_KEY, function (ItemInterface $item): string {
             $item->expiresAt((new DateTime())->modify('+1 day'));
 
             $products = $this->entityManager->getRepository(Product::class)->findAll();
             return $this->serializer->serialize($products, 'json', ['groups' => 'product:read']);
         });
+    }
+
+    /**
+     * Invalidate the product list cache.
+     * @throws InvalidArgumentException
+     */
+    private function invalidateCache(): void
+    {
+        $this->cache->delete(self::CACHE_KEY);
     }
 }
