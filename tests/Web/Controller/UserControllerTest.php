@@ -61,7 +61,7 @@ class UserControllerTest extends BaseTestCase
         $this->client->loginUser($testUser);
 
         $payload = [
-            'role' => 1,
+            'role' => 'ROLE_USER',
             'id' => 1,
         ];
 
