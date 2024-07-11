@@ -52,7 +52,7 @@ final readonly class UserService
         if (! $user) {
             throw new Exception('Such user does not exist');
         }
-        $user->setRole($editRoleDTO->role);
+        $user->setRoles([$editRoleDTO->role]);
         $this->entityManager->flush();
     }
 }
