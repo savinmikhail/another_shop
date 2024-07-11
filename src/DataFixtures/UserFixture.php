@@ -22,7 +22,7 @@ class UserFixture extends Fixture
             ->setRoles(['ROLE_ADMIN'])
             ->setPhone('1234567890')
             ->setName('name')
-            ->setRole(UserRole::ADMIN);
+            ->setRoles(['ROLE_ADMIN']);
 
         $user = new User();
         $user->setEmail('user@example.com')
@@ -30,7 +30,7 @@ class UserFixture extends Fixture
             ->setRoles(['ROLE_ADMIN'])
             ->setPhone('0987654321')
             ->setName('name')
-            ->setRole(UserRole::ADMIN);
+            ->setRoles(['ROLE_USER']);
 
         $manager->persist($admin);
         $manager->persist($user);
