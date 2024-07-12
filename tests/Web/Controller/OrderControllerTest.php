@@ -4,6 +4,7 @@ namespace App\Tests\Web\Controller;
 
 use App\DTO\Cart\AddToCartDTO;
 use App\DTO\Order\CreateOrderDTO;
+use App\Entity\CartItem;
 use App\Entity\Product;
 use App\Entity\User;
 use App\Enum\DeliveryType;
@@ -12,6 +13,7 @@ use App\Service\CartService;
 use App\Service\OrderService;
 use App\Tests\Web\BaseTestCase;
 use Symfony\Component\HttpFoundation\Response;
+use function array_walk;
 use function dd;
 use function json_encode;
 
@@ -56,6 +58,34 @@ class OrderControllerTest extends BaseTestCase
         $this->assertEquals(Response::HTTP_OK, $this->client->getResponse()->getStatusCode());
         $this->assertJson($this->client->getResponse()->getContent());
         $this->assertStringContainsString('Order created', $this->client->getResponse()->getContent());
+    }
+
+    public function testCreateOrderFromEmptyCartShouldReturnNothingToPurchase(): void
+    {
+        $userRepository = $this->entityManager->getRepository(User::class);
+        /** @var User $testUser */
+        $testUser = $userRepository->findOneByEmail('adminuser@example.com');
+        $itemsTORemove = $testUser->getCart()->getCartItems()->toArray();
+        array_walk($itemsTORemove, static function (CartItem $item) use ($testUser): void {
+            $testUser->getCart()->removeCartItem($item);
+        });
+        $payload = [
+            'deliveryType' => DeliveryType::SELF_DELIVERY,
+            'addressId' => 1,
+        ];
+
+        $this->client->request(
+            'POST',
+            '/api/order',
+            [],
+            [],
+            ['CONTENT_TYPE' => 'application/json'],
+            json_encode($payload)
+        );
+
+        $this->assertEquals(Response::HTTP_BAD_REQUEST, $this->client->getResponse()->getStatusCode());
+        $this->assertJson($this->client->getResponse()->getContent());
+        $this->assertStringContainsString("Nothing to purchase.", $this->client->getResponse()->getContent());
     }
 
     public function testCreateOrderValidationFailure(): void
