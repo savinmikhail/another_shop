@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace App\Service;
 
 use App\DTO\Product\CreateProductDTO;
+use App\DTO\Product\FindProductRequest;
 use App\Entity\Measurement;
 use App\Entity\Product;
 use DateTime;
@@ -12,6 +13,8 @@ use Doctrine\ORM\EntityManagerInterface;
 use Doctrine\ORM\Exception\ORMException;
 use Doctrine\ORM\OptimisticLockException;
 use Exception;
+use FOS\ElasticaBundle\Finder\FinderInterface;
+use FOS\ElasticaBundle\Finder\HybridFinderInterface;
 use Psr\Cache\InvalidArgumentException;
 use Symfony\Component\Serializer\SerializerInterface;
 use Symfony\Contracts\Cache\CacheInterface;
@@ -25,13 +28,14 @@ final readonly class ProductService
         private EntityManagerInterface $entityManager,
         private CacheInterface $cache,
         private SerializerInterface $serializer,
+        private FinderInterface $finder,
     ) {
     }
 
     /**
      * @throws OptimisticLockException
      * @throws ORMException
-     * @throws Exception
+     * @throws Exception|InvalidArgumentException
      */
     public function create(CreateProductDTO $createProductDTO): void
     {
@@ -83,5 +87,11 @@ final readonly class ProductService
     private function invalidateCache(): void
     {
         $this->cache->delete(self::CACHE_KEY);
+    }
+
+    public function search(FindProductRequest $dto): string
+    {
+        $products = $this->finder->find($dto->search);
+        return $this->serializer->serialize($products, 'json', ['groups' => 'product:read']);
     }
 }
