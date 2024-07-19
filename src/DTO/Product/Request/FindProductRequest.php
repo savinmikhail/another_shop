@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace App\DTO\Product;
+namespace App\DTO\Product\Request;
 
 use Symfony\Component\DependencyInjection\Attribute\Exclude;
 use Symfony\Component\Validator\Constraints as Assert;
