@@ -91,7 +91,7 @@ final readonly class ProductService
 
     public function search(FindProductRequest $dto): string
     {
-        $products = $this->finder->find($dto->search);
+        $products = $this->finder->find($dto->search . '~2');
         return $this->serializer->serialize($products, 'json', ['groups' => 'product:read']);
     }
 }
