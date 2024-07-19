@@ -2,5 +2,9 @@
 fos_elastica:
     clients:
         default: { url: '%env(ELASTICSEARCH_URL)%' }
+    serializer: ~
     indexes:
-        app: null
+        product:
+            persistence:
+                driver: orm
+                model: App\Entity\Product
