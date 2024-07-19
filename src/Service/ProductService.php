@@ -4,8 +4,9 @@ declare(strict_types=1);
 
 namespace App\Service;
 
-use App\DTO\Product\CreateProductDTO;
-use App\DTO\Product\FindProductRequest;
+use App\DTO\Product\Request\CreateProductDTO;
+use App\DTO\Product\Request\FindProductRequest;
+use App\DTO\Product\Response\SearchProductResult;
 use App\Entity\Measurement;
 use App\Entity\Product;
 use DateTime;
@@ -14,11 +15,13 @@ use Doctrine\ORM\Exception\ORMException;
 use Doctrine\ORM\OptimisticLockException;
 use Exception;
 use FOS\ElasticaBundle\Finder\FinderInterface;
-use FOS\ElasticaBundle\Finder\HybridFinderInterface;
+use FOS\ElasticaBundle\HybridResult;
 use Psr\Cache\InvalidArgumentException;
 use Symfony\Component\Serializer\SerializerInterface;
 use Symfony\Contracts\Cache\CacheInterface;
 use Symfony\Contracts\Cache\ItemInterface;
+
+use function array_map;
 
 final readonly class ProductService
 {
@@ -76,7 +79,7 @@ final readonly class ProductService
             $item->expiresAt((new DateTime())->modify('+1 day'));
 
             $products = $this->entityManager->getRepository(Product::class)->findAll();
-            return $this->serializer->serialize($products, 'json', ['groups' => 'product:read']);
+            return $this->serializer->serialize($products, 'json');
         });
     }
 
@@ -91,7 +94,13 @@ final readonly class ProductService
 
     public function search(FindProductRequest $dto): string
     {
-        $products = $this->finder->find($dto->search . '~2');
-        return $this->serializer->serialize($products, 'json', ['groups' => 'product:read']);
+        $res = array_map(
+            static fn (HybridResult $result): SearchProductResult => new SearchProductResult(
+                $result->getTransformed(),
+                $result->getResult()->getScore()
+            ),
+            $this->finder->findHybrid($dto->search . '~2')
+        );
+        return $this->serializer->serialize($res, 'json');
     }
 }
