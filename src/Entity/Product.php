@@ -13,37 +13,26 @@ class Product
     #[ORM\Id]
     #[ORM\GeneratedValue(strategy: "SEQUENCE")]
     #[ORM\Column]
-    #[Groups(['product:read', 'cart:read'])]
     private ?int $id = null;
 
     #[ORM\Column(length: 255)]
-    #[Groups(['product:read'])]
     private ?string $name = null;
 
     #[ORM\Column(length: 255, nullable: true)]
-    #[Groups(['product:read'])]
     private ?string $description = null;
 
     #[ORM\Column]
-    #[Groups(['product:read'])]
     private ?int $cost = null;
 
     #[ORM\Column]
-    #[Groups(['product:read'])]
     private ?int $tax = null;
 
     #[ORM\Column]
-    #[Groups(['product:read'])]
     private ?int $version = null;
 
-    #[ORM\OneToOne(inversedBy: 'product', cascade: ['persist', 'remove'])]
+    #[ORM\OneToOne(cascade: ['persist', 'remove'])]
     #[ORM\JoinColumn(nullable: false)]
-    #[Groups(['product:read'])]
     private ?Measurement $measurement = null;
-
-    #[ORM\ManyToOne(inversedBy: 'items')]
-    #[Groups(['product:read'])]
-    private ?Cart $cart = null;
 
     public function getId(): ?int
     {
@@ -118,18 +107,6 @@ class Product
     public function setMeasurement(Measurement $measurement): static
     {
         $this->measurement = $measurement;
-
-        return $this;
-    }
-
-    public function getCart(): ?Cart
-    {
-        return $this->cart;
-    }
-
-    public function setCart(?Cart $cart): static
-    {
-        $this->cart = $cart;
 
         return $this;
     }
