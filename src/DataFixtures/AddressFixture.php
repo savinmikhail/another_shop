@@ -10,10 +10,7 @@ class AddressFixture extends Fixture
 {
     public function load(ObjectManager $manager): void
     {
-        $address = new Address();
-        $address
-            ->setFullAddress('улица пушкина дом колотушкина')
-            ->setKladrId(12345);
+        $address = Address::create('улица пушкина дом колотушкина', 12345);
         $manager->persist($address);
         $manager->flush();
     }

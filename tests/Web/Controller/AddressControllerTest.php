@@ -19,7 +19,6 @@ class AddressControllerTest extends BaseTestCase
 
     public function testCreateAddressSuccess(): void
     {
-
         $payload = [
             'fullAddress' => '123 Main St, Anytown, USA',
             'kladrId' => 123456,

@@ -17,10 +17,7 @@ final readonly class AddressService
 
     public function create(CreateAddressDTO $createAddressDTO): void
     {
-        $address = new Address();
-        $address
-            ->setFullAddress($createAddressDTO->fullAddress)
-            ->setKladrId($createAddressDTO->kladrId);
+        $address = Address::create($createAddressDTO->fullAddress, $createAddressDTO->kladrId);
         $this->entityManager->persist($address);
         $this->entityManager->flush();
     }
