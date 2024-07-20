@@ -14,14 +14,15 @@ use Doctrine\ORM\EntityManagerInterface;
 use Doctrine\ORM\Exception\ORMException;
 use Doctrine\ORM\OptimisticLockException;
 use Exception;
-use FOS\ElasticaBundle\Finder\FinderInterface;
 use FOS\ElasticaBundle\HybridResult;
 use Psr\Cache\InvalidArgumentException;
-use Symfony\Component\Serializer\SerializerInterface;
 use Symfony\Contracts\Cache\CacheInterface;
 use Symfony\Contracts\Cache\ItemInterface;
+use Elastica\Query;
+use FOS\ElasticaBundle\Finder\HybridFinderInterface;
 
 use function array_map;
+use function count;
 
 final readonly class ProductService
 {
@@ -30,8 +31,7 @@ final readonly class ProductService
     public function __construct(
         private EntityManagerInterface $entityManager,
         private CacheInterface $cache,
-        private SerializerInterface $serializer,
-        private FinderInterface $finder,
+        private HybridFinderInterface $finder,
     ) {
     }
 
@@ -73,13 +73,12 @@ final readonly class ProductService
     /**
      * @throws InvalidArgumentException
      */
-    public function index(): string
+    public function index(): array
     {
-        return $this->cache->get(self::CACHE_KEY, function (ItemInterface $item): string {
+        return $this->cache->get(self::CACHE_KEY, function (ItemInterface $item): array {
             $item->expiresAt((new DateTime())->modify('+1 day'));
 
-            $products = $this->entityManager->getRepository(Product::class)->findAll();
-            return $this->serializer->serialize($products, 'json');
+            return $this->entityManager->getRepository(Product::class)->findAll();
         });
     }
 
@@ -92,15 +91,30 @@ final readonly class ProductService
         $this->cache->delete(self::CACHE_KEY);
     }
 
-    public function search(FindProductRequest $dto): string
+    public function search(FindProductRequest $dto): array
     {
-        $res = array_map(
+        $boolQuery = new Query\BoolQuery();
+
+        $range = [];
+        if ($dto->minCost !== null) {
+            $range['gte'] = $dto->minCost;
+        }
+        if ($dto->maxCost !== null) {
+            $range['lte'] = $dto->maxCost;
+        }
+        if (count($range) > 0) {
+            $boolQuery->addMust(new Query\Range('cost', $range));
+        }
+
+        $boolQuery->addShould(new Query\Fuzzy('name', $dto->search));
+        $boolQuery->addShould(new Query\Fuzzy('description', $dto->search));
+
+        return array_map(
             static fn (HybridResult $result): SearchProductResult => new SearchProductResult(
                 $result->getTransformed(),
                 $result->getResult()->getScore()
             ),
-            $this->finder->findHybrid($dto->search . '~2')
+            $this->finder->findHybrid(new Query($boolQuery))
         );
-        return $this->serializer->serialize($res, 'json');
     }
 }
