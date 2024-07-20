@@ -13,6 +13,12 @@ final readonly class FindProductRequest
     public function __construct(
         #[Assert\NotBlank]
         public string $search,
+        #[Assert\Type('integer')]
+        #[Assert\PositiveOrZero]
+        public ?int $minCost = null,
+        #[Assert\Type('integer')]
+        #[Assert\PositiveOrZero]
+        public ?int $maxCost = null,
     ) {
     }
 }
