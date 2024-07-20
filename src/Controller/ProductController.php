@@ -14,11 +14,13 @@ use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\HttpKernel\Attribute\MapRequestPayload;
 use Symfony\Component\Routing\Annotation\Route;
+use Symfony\Component\Serializer\SerializerInterface;
 
 final class ProductController extends AbstractController
 {
     public function __construct(
         private readonly ProductService $productService,
+        private SerializerInterface $serializer,
     ) {
     }
 
@@ -28,7 +30,7 @@ final class ProductController extends AbstractController
     ): JsonResponse {
         try {
             $this->productService->create($createProductDTO);
-            return new JsonResponse('product was added successfully', Response::HTTP_CREATED);
+            return new JsonResponse(['message' => 'product was added successfully'], Response::HTTP_CREATED);
         } catch (Exception $e) {
             return $this->json($e->getMessage(), Response::HTTP_BAD_REQUEST);
         }
@@ -39,7 +41,7 @@ final class ProductController extends AbstractController
     {
         try {
             $response = $this->productService->index();
-            return new JsonResponse($response, Response::HTTP_OK, [], true);
+            return new JsonResponse($this->serializer->serialize($response, 'json'), Response::HTTP_OK, [], true);
         } catch (Exception $e) {
             return $this->json($e->getMessage(), Response::HTTP_BAD_REQUEST);
         }
@@ -49,12 +51,14 @@ final class ProductController extends AbstractController
     public function search(Request $request): JsonResponse {
         try {
             $findProductRequest = new FindProductRequest(
-                search: $request->query->get('search')
+                search: $request->query->get('search'),
+                minCost: $request->query->get('minCost') ? (int)$request->query->get('minCost') : null,
+                maxCost: $request->query->get('maxCost') ? (int)$request->query->get('maxCost') : null,
             );
 
             $response = $this->productService->search($findProductRequest);
 
-            return new JsonResponse($response, Response::HTTP_OK, [], true);
+            return new JsonResponse($this->serializer->serialize($response, 'json'), Response::HTTP_OK, [], true);
         } catch (Exception $e) {
             return $this->json($e->getMessage(), Response::HTTP_BAD_REQUEST);
         }
