@@ -4,6 +4,10 @@
 # Put parameters here that don't need to change on each machine where the app is deployed
 # https://symfony.com/doc/current/best_practices.html#use-parameters-for-application-configuration
 parameters:
+    clickhouse.host: '%env(CLICKHOUSE_HOST)%'
+    clickhouse.username: '%env(CLICKHOUSE_USERNAME)%'
+    clickhouse.password: '%env(CLICKHOUSE_PASSWORD)%'
+    clickhouse.database: '%env(CLICKHOUSE_DATABASE)%'
 
 services:
     # default configuration for services in *this* file
@@ -46,3 +50,16 @@ services:
     App\Service\ProductService:
         arguments:
             $finder: '@fos_elastica.finder.product'
+
+    # Define the CurlClient service with custom configuration
+    App\Client\CurlClient:
+        factory: ['App\Factory\CurlClientFactory', 'createClient']
+        arguments:
+            $baseUri: '%clickhouse.host%'
+            $username: '%clickhouse.username%'
+            $password: '%clickhouse.password%'
+            $database: '%clickhouse.database%'
+    # Register the ClickHouse service and inject the CurlClient
+    App\Client\ClickHouse:
+        arguments:
+            $client: '@App\Client\CurlClient'
