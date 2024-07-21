@@ -63,6 +63,7 @@ services:
 
   kafdrop:
     image: obsidiandynamics/kafdrop
+    platform: linux/amd64
     restart: "no"
     ports:
       - 9900:9000
@@ -106,8 +107,19 @@ services:
     depends_on:
       - elasticsearch
 
+  clickhouse:
+    platform: linux/amd64
+    image: yandex/clickhouse-server
+    container_name: 'clickhouse'
+    ports:
+      - '8123:8123'
+      - '9001:9000'
+    volumes:
+      - clickhouse_data:/var/lib/clickhouse
+
 volumes:
   dump:
   postgresql:
   elastic_data:
+  clickhouse_data:
 
